@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قراءة الفصل - مانهوا ڤيرس</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">الرئيسية</a>
+        <div><span>الفصل 1 (عدد الصفحات الثابت: 6 صفحات كحد أقصى)</span></div>
+        <button class="theme-toggle" onclick="document.documentElement.toggleAttribute('data-theme')">🌓</button>
+    </header>
+
+    <!-- صور الفصل متسلسلة بدون فراغات -->
+    <div class="reader-container">
+        <img src="https://via.placeholder.com/800x1200/333/fff?text=Page+1" alt="1">
+        <img src="https://via.placeholder.com/800x1200/444/fff?text=Page+2" alt="2">
+        <img src="https://via.placeholder.com/800x1200/555/fff?text=Page+3" alt="3">
+        <img src="https://via.placeholder.com/800x1200/666/fff?text=Page+4" alt="4">
+        <img src="https://via.placeholder.com/800x1200/777/fff?text=Page+5" alt="5">
+        <img src="https://via.placeholder.com/800x1200/888/fff?text=Page+6" alt="6">
+    </div>
+
+    <!-- نظام التقييم بالسمايلات (3 درجات) -->
+    <div style="text-align: center; margin: 2rem auto; background: var(--card-bg); max-width: 500px; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+        <h4>تقييم العمل</h4>
+        <div class="smile-rating">
+            <button class="smile-btn" title="الأسوء" onclick="rate(1)">😞</button>
+            <button class="smile-btn" title="جيد" onclick="rate(2)">🙂</button>
+            <button class="smile-btn" title="الاحسن" onclick="rate(3)">😍</button>
+        </div>
+        <p style="font-size: 0.85rem; color: #888;" id="stats">إجمالي المقيمين: 1,450 | المتوسط: 2.8 / 3</p>
+    </div>
+
+    <!-- زر التنقل -->
+    <div style="text-align: center; padding-bottom: 3rem;">
+        <button class="btn" style="width: auto; display: inline-block;">الفصل السابق</button>
+        <button class="btn" style="width: auto; display: inline-block; margin-right: 0.5rem;">الفصل التالي</button>
+    </div>
+
+    <script>
+        function rate(score) {
+            alert('تم تسجيل تقييمك بنجاح!');
+        }
+    </script>
+</body>
+</html>

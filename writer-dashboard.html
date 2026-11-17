@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الكاتب</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">لوحة الكاتب</a>
+        <nav class="nav-links">
+            <a href="writer-profile.html">ملفي الشخصي</a>
+            <button onclick="window.location.href='auth.html'">خروج</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="auth-container" style="max-width: 700px; margin: 2rem auto;">
+            <h3 style="margin-bottom: 1rem;">إنشاء قصة جديدة</h3>
+            <div class="form-group"><label>اسم القصة</label><input type="text" placeholder="اسم القصة..."></div>
+            <div class="form-group"><label>رابط الغلاف</label><input type="text" placeholder="رابط الغلاف..."></div>
+            <div class="form-group"><label>الحالة</label>
+                <select>
+                    <option value="ongoing">مستمرة</option>
+                    <option value="completed">مكتملة (يُقفل التعديل عليها نهائياً)</option>
+                </select>
+            </div>
+            <button class="btn" style="margin-bottom: 2rem;">حفظ ونشر</button>
+
+            <h3 style="margin-bottom: 1rem;">رفع فصل جديد (بحد أقصى 6 صفحات ثابتة ومعقولة)</h3>
+            <div class="form-group"><label>رقم الفصل</label><input type="number" value="1"></div>
+            <div class="form-group"><label>صور الفصل (اختر 6 صور كحد أقصى)</label><input type="file" multiple accept="image/*"></div>
+            <button class="btn" style="background: #059669;">نشر الفصل</button>
+        </div>
+    </div>
+</body>
+</html>

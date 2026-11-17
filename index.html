@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مانهوا ڤيرس - الرئيسية</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">مانهوا ڤيرس</a>
+        <nav class="nav-links">
+            <a href="index.html">الرئيسية</a>
+            <button onclick="window.location.href='auth.html'">تسجيل / دخول</button>
+        </nav>
+        <button class="theme-toggle" id="themeToggleBtn">🌙</button>
+    </header>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>أحدث القصص</h2>
+            <select id="sortSelect" style="padding: 0.5rem; border-radius: 5px;">
+                <option value="new">الأحدث</option>
+                <option value="old">الأقدم</option>
+                <option value="rating">الأعلى تقييماً</option>
+                <option value="views">الأعلى مشاهدة</option>
+            </select>
+        </div>
+
+        <div class="grid" id="mangaGrid">
+            <!-- مثال لقصة مع شعلامة التحقق الزرقاء وتقييم السمايلات -->
+            <div class="manga-card">
+                <!-- علامة الصح الزرقاء إذا تخطى 1000 مقيم جيد فأعلى -->
+                <div class="verified-badge" title="عمل مميز موثق (> 1000 مقيّم)">✓</div>
+                <a href="read.html">
+                    <img src="https://via.placeholder.com/200x280" alt="غلاف">
+                </a>
+                <div class="manga-info">
+                    <h3>أبطال القمة</h3>
+                    <p style="font-size: 0.8rem; color: #888; margin-top: 0.3rem;">
+                        الكاتب: <a href="writer-profile.html" style="color: var(--primary-color);">أحمد</a>
+                    </p>
+                    <p style="font-size: 0.8rem; margin-top: 0.3rem;">⭐ متوسط: 2.8 | 👥 1,450 مقيّم</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('themeToggleBtn');
+        btn.addEventListener('click', () => {
+            if(document.documentElement.getAttribute('data-theme')==='dark'){
+                document.documentElement.removeAttribute('data-theme');
+                btn.textContent='🌙';
+            }else{
+                document.documentElement.setAttribute('data-theme','dark');
+                btn.textContent='☀️';
+            }
+        });
+    </script>
+</body>
+</html>

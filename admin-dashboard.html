@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المشرف العام</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <span class="logo" style="color: #059669;">لوحة المشرف العام (مؤمنة)</span>
+        <nav class="nav-links">
+            <a href="index.html">الموقع</a>
+            <button onclick="sessionStorage.clear(); window.location.href='auth.html';">خروج</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>إدارة التعليقات والبلاغات</h2>
+        <table style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; margin-top: 1rem; border: 1px solid var(--border-color);">
+            <thead>
+                <tr style="background: var(--primary-color); color: #fff; text-align: right;">
+                    <th style="padding: 1rem;">المستخدم</th>
+                    <th style="padding: 1rem;">التعليق</th>
+                    <th style="padding: 1rem;">البلاغات</th>
+                    <th style="padding: 1rem;">إجراء</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">زائر_مخالف</td>
+                    <td style="padding: 1rem;">تعليق غير لائق...</td>
+                    <td style="padding: 1rem; color: red;">🚨 (2)</td>
+                    <td style="padding: 1rem;"><button style="background: red; color:#fff; border:none; padding:0.3rem 0.6rem; border-radius:4px; cursor:pointer;">حذف</button></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- إخلاء المسؤولية القانوني -->
+        <div style="margin-top: 3rem; padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;">
+            <strong>إخلاء مسؤولية قانوني:</strong>
+            <p style="margin-top: 0.5rem; color: #888;">جميع التعليقات تعبر عن رأي أصحابها فقط، وإدارة الموقع غير مسؤولة عنها ويتم حذف أي مخالفة فوراً.</p>
+        </div>
+    </div>
+
+    <script>
+        if (sessionStorage.getItem('isAdminAuth') !== 'true') {
+            alert('غير مصرح لك بالدخول!');
+            window.location.href = 'auth.html';
+        }
+    </script>
+</body>
+</html>
