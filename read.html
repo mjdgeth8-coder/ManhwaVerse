@@ -5,37 +5,137 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>قراءة الفصل - مانهوا ڤيرس</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <a href="main-site.html" class="logo">الرئيسية</a>
-        <div><span>الفصل 1 (6 صفحات ثابتة)</span></div>
-        <button class="theme-toggle" onclick="document.documentElement.toggleAttribute('data-theme')">🌓</button>
+        <a href="main-site.html" class="logo">← العودة للقائمة</a>
+        <div id="chapterTitle" style="font-weight: bold;">قراءة الفصل</div>
+        <button class="theme-toggle" id="themeBtn">🌙</button>
     </header>
 
-    <div class="reader-container">
-        <img src="https://via.placeholder.com/800x1200/333/fff?text=Page+1" alt="1">
-        <img src="https://via.placeholder.com/800x1200/444/fff?text=Page+2" alt="2">
-        <img src="https://via.placeholder.com/800x1200/555/fff?text=Page+3" alt="3">
-        <img src="https://via.placeholder.com/800x1200/666/fff?text=Page+4" alt="4">
-        <img src="https://via.placeholder.com/800x1200/777/fff?text=Page+5" alt="5">
-        <img src="https://via.placeholder.com/800x1200/888/fff?text=Page+6" alt="6">
-    </div>
-
-    <div style="text-align: center; margin: 2rem auto; background: var(--card-bg); max-width: 500px; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
-        <h4>قيم العمل بالسمايلات</h4>
-        <div class="smile-rating">
-            <button class="smile-btn" title="الأسوء" onclick="rate(1)">😞</button>
-            <button class="smile-btn" title="جيد" onclick="rate(2)">🙂</button>
-            <button class="smile-btn" title="الاحسن" onclick="rate(3)">😍</button>
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <select id="chapterSelect" onchange="loadChapter(this.value)" style="padding: 0.5rem 1rem; border-radius: 6px;"></select>
         </div>
-        <p style="font-size: 0.85rem; color: #888;">إجمالي المقيمين: 1,200 | المتوسط: 2.9 / 3</p>
+
+        <!-- صور الفصل (6 صفحات ثابتة كحد أقصى) -->
+        <div class="reader-container" id="pagesContainer"></div>
+
+        <!-- التقييم بالسمايلات (3 درجات) -->
+        <div style="text-align: center; margin: 2.5rem auto; background: var(--card-bg); max-width: 550px; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4>قيم هذه القصة</h4>
+            <div class="smile-rating">
+                <button class="smile-btn" onclick="rateStory('bad')">😞<span>الأسوء</span></button>
+                <button class="smile-btn" onclick="rateStory('good')">🙂<span>جيد</span></button>
+                <button class="smile-btn" onclick="rateStory('best')">😍<span>الأحسن</span></button>
+            </div>
+            <p style="font-size: 0.9rem; color: #888;" id="ratingInfo"></p>
+        </div>
+
+        <!-- قسم التعليقات وإخلاء المسؤولية -->
+        <div style="max-width: 700px; margin: 2rem auto; background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            <h4 style="margin-bottom: 1rem;">التعليقات</h4>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <input type="text" id="commentInput" placeholder="اكتب تعليقك هنا..." style="flex: 1; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+                <button class="btn" style="width: auto; padding: 0.6rem 1.2rem;" onclick="addComment()">نشر</button>
+            </div>
+            <div id="commentsList"></div>
+            <p style="font-size: 0.75rem; color: #888; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem;">
+                إخلاء مسؤولية: جميع التعليقات تعبر عن آراء أصحابها ولا تتحمل إدارة المنصة أي مسؤولية قانونية عنها.
+            </p>
+        </div>
     </div>
 
     <script>
-        function rate(score) {
+        const themeBtn = document.getElementById('themeBtn');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeBtn.textContent = '☀️';
+        }
+        themeBtn.onclick = () => {
+            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                themeBtn.textContent = '🌙';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeBtn.textContent = '☀️';
+            }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('story');
+        let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]');
+        let currentStory = stories.find(s => s.id === storyId) || stories[0];
+
+        function initReader() {
+            if (!currentStory) return;
+            document.getElementById('chapterTitle').textContent = currentStory.title;
+            const select = document.getElementById('chapterSelect');
+            if (currentStory.chapters.length === 0) {
+                document.getElementById('pagesContainer').innerHTML = '<p style="text-align:center; padding: 2rem;">لم يقم الكاتب برفع أي فصول لهذه القصة بعد.</p>';
+            } else {
+                select.innerHTML = currentStory.chapters.map((ch, idx) => `<option value="${idx}">الفصل ${ch.number}</option>`).join('');
+                loadChapter(0);
+            }
+            updateRatingDisplay();
+            renderComments();
+        }
+
+        function loadChapter(index) {
+            const chapter = currentStory.chapters[index];
+            const container = document.getElementById('pagesContainer');
+            container.innerHTML = chapter.pages.slice(0, 6).map((url, i) => `<img src="${url}" alt="صفحة ${i+1}">`).join('');
+        }
+
+        function rateStory(type) {
+            currentStory.ratings[type]++;
+            localStorage.setItem('mv_stories', JSON.stringify(stories));
+            updateRatingDisplay();
             alert('تم تسجيل تقييمك بنجاح!');
         }
+
+        function updateRatingDisplay() {
+            const r = currentStory.ratings;
+            const total = r.bad + r.good + r.best;
+            const avg = total === 0 ? '0.0' : (((r.bad * 1) + (r.good * 2) + (r.best * 3)) / total).toFixed(1);
+            document.getElementById('ratingInfo').textContent = `إجمالي المقيمين: ${total} | المتوسط العام: ${avg} / 3`;
+        }
+
+        function addComment() {
+            const text = document.getElementById('commentInput').value.trim();
+            if (!text) return;
+            let comments = JSON.parse(localStorage.getItem('mv_comments') || '[]');
+            comments.push({ id: 'c_' + Date.now(), storyTitle: currentStory.title, text: text, reports: 0 });
+            localStorage.setItem('mv_comments', JSON.stringify(comments));
+            document.getElementById('commentInput').value = '';
+            renderComments();
+        }
+
+        function reportComment(id) {
+            let comments = JSON.parse(localStorage.getItem('mv_comments') || '[]');
+            const c = comments.find(x => x.id === id);
+            if (c) {
+                c.reports++;
+                localStorage.setItem('mv_comments', JSON.stringify(comments));
+                alert('تم إرسال البلاغ للمشرف العام للمراجعة.');
+                renderComments();
+            }
+        }
+
+        function renderComments() {
+            let comments = JSON.parse(localStorage.getItem('mv_comments') || '[]').filter(c => c.storyTitle === currentStory.title);
+            document.getElementById('commentsList').innerHTML = comments.map(c => `
+                <div style="padding: 0.8rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <span>${c.text}</span>
+                    <button onclick="reportComment('${c.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.8rem;">🚨 إبلاغ (${c.reports})</button>
+                </div>
+            `).join('');
+        }
+
+        initReader();
     </script>
 </body>
 </html>
