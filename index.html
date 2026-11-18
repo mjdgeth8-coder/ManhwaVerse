@@ -9,32 +9,37 @@
 <body>
     <div class="auth-container">
         <h2 style="text-align:center; margin-bottom: 1.5rem; color: var(--primary-color);">منصة المانهوا ڤيرس</h2>
+        
         <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
             <button class="btn" onclick="switchRole('guest')" style="background:#4b5563;">دخول ضيف</button>
             <button class="btn" onclick="switchRole('writer')">حساب كاتب</button>
             <button class="btn" onclick="switchRole('admin')" style="background:#059669;">دخول مشرف</button>
         </div>
 
+        <!-- قسم الكاتب -->
         <div id="writerSection">
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchWriterTab('login')">تسجيل دخول</button>
-                <button class="tab-btn" onclick="switchWriterTab('register')">إنشاء حساب جديد</button>
+                <button class="tab-btn active" id="btnLoginTab" onclick="switchWriterTab('login')">تسجيل دخول</button>
+                <button class="tab-btn" id="btnRegTab" onclick="switchWriterTab('register')">إنشاء حساب جديد</button>
             </div>
             <div id="writerFormContent">
-                <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser"></div>
-                <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass"></div>
-                <button class="btn" onclick="writerLogin()">دخول</button>
+                <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser" placeholder="أدخل اسم المستخدم..."></div>
+                <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass" placeholder="أدخل كلمة المرور..."></div>
+                <button class="btn" onclick="writerLogin()">دخول للوحة الكاتب</button>
             </div>
+            <p id="writerErr" style="color: red; font-size: 0.85rem; margin-top: 0.5rem; display: none;"></p>
         </div>
 
+        <!-- قسم المشرف -->
         <div id="adminSection" style="display: none;">
             <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">دخول المشرف (عبر ملف الأمان)</h3>
-            <div class="form-group"><label>اسم المستخدم</label><input type="text" id="aUser"></div>
-            <div class="form-group"><label>كلمة المرور</label><input type="password" id="aPass"></div>
-            <button class="btn" style="background: #059669;" onclick="adminLogin()">دخول المشرف</button>
+            <div class="form-group"><label>اسم المستخدم</label><input type="text" id="aUser" placeholder="اسم المستخدم للمشرف..."></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="aPass" placeholder="كلمة المرور..."></div>
+            <button class="btn" style="background: #059669;" onclick="adminLogin()">تحقق ودخول المشرف</button>
             <p id="adminErr" style="color: red; font-size: 0.85rem; margin-top: 0.5rem; display: none;"></p>
         </div>
 
+        <!-- قسم الضيف -->
         <div id="guestSection" style="display: none; text-align: center;">
             <p style="margin-bottom: 1.5rem;">تصفح القصص مباشرة بدون حساب.</p>
             <button class="btn" onclick="window.location.href='main-site.html'">دخول كمشاهد</button>
@@ -49,78 +54,128 @@
         }
 
         function switchWriterTab(tab) {
-            const buttons = document.querySelectorAll('.tabs .tab-btn');
-            buttons.forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            const loginTab = document.getElementById('btnLoginTab');
+            const regTab = document.getElementById('btnRegTab');
             const content = document.getElementById('writerFormContent');
+            const errEl = document.getElementById('writerErr');
+            errEl.style.display = 'none';
+
             if(tab === 'register') {
+                regTab.classList.add('active');
+                loginTab.classList.remove('active');
                 content.innerHTML = `
-                    <div class="form-group"><label>اسم الكاتب</label><input type="text" id="regName"></div>
-                    <div class="form-group"><label>رابط الصورة الشخصية</label><input type="text" id="regAvatar"></div>
-                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="regPass"></div>
-                    <button class="btn" onclick="writerRegister()">إنشاء حساب</button>
+                    <div class="form-group"><label>اسم الكاتب الجديد</label><input type="text" id="regName" placeholder="الاسم..."></div>
+                    <div class="form-group"><label>رابط الصورة الشخصية (اختياري)</label><input type="text" id="regAvatar" placeholder="رابط الصورة..."></div>
+                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="regPass" placeholder="كلمة المرور..."></div>
+                    <button class="btn" onclick="writerRegister()">إنشاء حساب كاتب</button>
                 `;
             } else {
+                loginTab.classList.add('active');
+                regTab.classList.remove('active');
                 content.innerHTML = `
-                    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser"></div>
-                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass"></div>
-                    <button class="btn" onclick="writerLogin()">دخول</button>
+                    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser" placeholder="اسم المستخدم..."></div>
+                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass" placeholder="كلمة المرور..."></div>
+                    <button class="btn" onclick="writerLogin()">دخول للوحة الكاتب</button>
                 `;
             }
         }
 
+        // تسجيل كاتب جديد واتصال بالسيرفر
         async function writerRegister() {
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: document.getElementById('regName').value,
-                    avatar: document.getElementById('regAvatar').value,
-                    password: document.getElementById('regPass').value
-                })
-            });
-            const data = await res.json();
-            if(data.success) {
-                localStorage.setItem('writerId', data.userId);
-                localStorage.setItem('writerName', data.username);
-                window.location.href = 'writer-dashboard.html';
-            } else { alert(data.error); }
+            const username = document.getElementById('regName').value.trim();
+            const avatar = document.getElementById('regAvatar').value.trim();
+            const password = document.getElementById('regPass').value.trim();
+            const errEl = document.getElementById('writerErr');
+
+            if(!username || !password) {
+                errEl.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور!';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, avatar })
+                });
+                const data = await res.json();
+                if(res.ok && data.success) {
+                    localStorage.setItem('writerId', data.userId);
+                    localStorage.setItem('writerName', data.username);
+                    window.location.href = 'writer-dashboard.html';
+                } else {
+                    errEl.textContent = data.error || 'حدث خطأ أثناء التسجيل.';
+                    errEl.style.display = 'block';
+                }
+            } catch(e) {
+                errEl.textContent = 'تعذر الاتصال بالسيرفر. تأكد أن السيرفر يعمل.';
+                errEl.style.display = 'block';
+            }
         }
 
+        // تسجيل دخول الكاتب
         async function writerLogin() {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: document.getElementById('wUser').value,
-                    password: document.getElementById('wPass').value
-                })
-            });
-            const data = await res.json();
-            if(data.success) {
-                localStorage.setItem('writerId', data.userId);
-                localStorage.setItem('writerName', data.username);
-                window.location.href = 'writer-dashboard.html';
-            } else { alert(data.error); }
+            const username = document.getElementById('wUser').value.trim();
+            const password = document.getElementById('wPass').value.trim();
+            const errEl = document.getElementById('writerErr');
+
+            if(!username || !password) {
+                errEl.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور!';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if(res.ok && data.success) {
+                    localStorage.setItem('writerId', data.userId);
+                    localStorage.setItem('writerName', data.username);
+                    window.location.href = 'writer-dashboard.html';
+                } else {
+                    errEl.textContent = data.error || 'بيانات الدخول غير صحيحة.';
+                    errEl.style.display = 'block';
+                }
+            } catch(e) {
+                errEl.textContent = 'تعذر الاتصال بالسيرفر.';
+                errEl.style.display = 'block';
+            }
         }
 
+        // تسجيل دخول المشرف عبر ملف الأمان
         async function adminLogin() {
-            const res = await fetch('/api/admin-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: document.getElementById('aUser').value,
-                    password: document.getElementById('aPass').value
-                })
-            });
-            const data = await res.json();
-            if(data.success) {
-                sessionStorage.setItem('isAdminAuth', 'true');
-                window.location.href = 'admin-dashboard.html';
-            } else {
-                const err = document.getElementById('adminErr');
-                err.textContent = data.error;
-                err.style.display = 'block';
+            const username = document.getElementById('aUser').value.trim();
+            const password = document.getElementById('aPass').value.trim();
+            const errEl = document.getElementById('adminErr');
+
+            if(!username || !password) {
+                errEl.textContent = 'يرجى تعبئة الحقول!';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if(res.ok && data.success) {
+                    sessionStorage.setItem('isAdminAuth', 'true');
+                    window.location.href = 'admin-dashboard.html';
+                } else {
+                    errEl.textContent = data.error || 'بيانات المشرف غير مطابقة لملف الأمان!';
+                    errEl.style.display = 'block';
+                }
+            } catch(e) {
+                errEl.textContent = 'خطأ في الاتصال بالخادم وقراءة ملف الأمان.';
+                errEl.style.display = 'block';
             }
         }
     </script>
