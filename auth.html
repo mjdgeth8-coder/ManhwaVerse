@@ -7,43 +7,37 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="auth-container">
         <h2 style="text-align:center; margin-bottom: 1.5rem; color: var(--primary-color);">منصة المانهوا ڤيرس</h2>
-        
         <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
             <button class="btn" onclick="switchRole('guest')" style="background:#4b5563;">دخول ضيف</button>
             <button class="btn" onclick="switchRole('writer')">حساب كاتب</button>
             <button class="btn" onclick="switchRole('admin')" style="background:#059669;">دخول مشرف</button>
         </div>
 
-        <!-- واجهة الكاتب -->
         <div id="writerSection">
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchWriterTab('login')">تسجيل دخول</button>
                 <button class="tab-btn" onclick="switchWriterTab('register')">إنشاء حساب جديد</button>
             </div>
-            
             <div id="writerFormContent">
-                <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser" placeholder="اسم المستخدم..."></div>
-                <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass" placeholder="كلمة المرور..."></div>
-                <button class="btn" onclick="writerLogin()">دخول للوحة الكاتب</button>
+                <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser"></div>
+                <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass"></div>
+                <button class="btn" onclick="writerLogin()">دخول</button>
             </div>
         </div>
 
-        <!-- واجهة المشرف -->
         <div id="adminSection" style="display: none;">
-            <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">دخول المشرف</h3>
-            <div class="form-group"><label>اسم المستخدم</label><input type="text" id="aUser" placeholder="اسم المستخدم..."></div>
-            <div class="form-group"><label>كلمة المرور</label><input type="password" id="aPass" placeholder="كلمة المرور..."></div>
-            <button class="btn" style="background: #059669;" onclick="adminLogin()">التحقق والدخول</button>
+            <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">دخول المشرف (عبر ملف الأمان)</h3>
+            <div class="form-group"><label>اسم المستخدم</label><input type="text" id="aUser"></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="aPass"></div>
+            <button class="btn" style="background: #059669;" onclick="adminLogin()">دخول المشرف</button>
             <p id="adminErr" style="color: red; font-size: 0.85rem; margin-top: 0.5rem; display: none;"></p>
         </div>
 
-        <!-- واجهة الضيف -->
         <div id="guestSection" style="display: none; text-align: center;">
-            <p style="margin-bottom: 1.5rem;">تصفح القصص والفصول وقراءتها مباشرة.</p>
-            <button class="btn" onclick="window.location.href='index.html'">دخول كمشاهد (ضيف)</button>
+            <p style="margin-bottom: 1.5rem;">تصفح القصص مباشرة بدون حساب.</p>
+            <button class="btn" onclick="window.location.href='index.html'">دخول كمشاهد</button>
         </div>
     </div>
 
@@ -58,51 +52,74 @@
             const buttons = document.querySelectorAll('.tabs .tab-btn');
             buttons.forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            
             const content = document.getElementById('writerFormContent');
             if(tab === 'register') {
                 content.innerHTML = `
-                    <div class="form-group"><label>اسم الكاتب</label><input type="text" id="regName" placeholder="الاسم..."></div>
-                    <div class="form-group"><label>رابط صورة الملف الشخصي</label><input type="text" id="regAvatar" placeholder="رابط الصورة..."></div>
-                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="regPass" placeholder="كلمة المرور..."></div>
-                    <button class="btn" onclick="writerRegister()">إنشاء وتسجيل</button>
+                    <div class="form-group"><label>اسم الكاتب</label><input type="text" id="regName"></div>
+                    <div class="form-group"><label>رابط الصورة الشخصية</label><input type="text" id="regAvatar"></div>
+                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="regPass"></div>
+                    <button class="btn" onclick="writerRegister()">إنشاء حساب</button>
                 `;
             } else {
                 content.innerHTML = `
-                    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser" placeholder="اسم المستخدم..."></div>
-                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass" placeholder="كلمة المرور..."></div>
-                    <button class="btn" onclick="writerLogin()">دخول للوحة الكاتب</button>
+                    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser"></div>
+                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass"></div>
+                    <button class="btn" onclick="writerLogin()">دخول</button>
                 `;
             }
         }
 
-        function writerRegister() {
-            alert('تم إنشاء الحساب بنجاح!');
-            window.location.href = 'writer-dashboard.html';
+        async function writerRegister() {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('regName').value,
+                    avatar: document.getElementById('regAvatar').value,
+                    password: document.getElementById('regPass').value
+                })
+            });
+            const data = await res.json();
+            if(data.success) {
+                localStorage.setItem('writerId', data.userId);
+                localStorage.setItem('writerName', data.username);
+                window.location.href = 'writer-dashboard.html';
+            } else { alert(data.error); }
         }
 
-        function writerLogin() {
-            window.location.href = 'writer-dashboard.html';
+        async function writerLogin() {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('wUser').value,
+                    password: document.getElementById('wPass').value
+                })
+            });
+            const data = await res.json();
+            if(data.success) {
+                localStorage.setItem('writerId', data.userId);
+                localStorage.setItem('writerName', data.username);
+                window.location.href = 'writer-dashboard.html';
+            } else { alert(data.error); }
         }
 
         async function adminLogin() {
-            const u = document.getElementById('aUser').value.trim();
-            const p = document.getElementById('aPass').value.trim();
-            const err = document.getElementById('adminErr');
-
-            try {
-                const res = await fetch('sys_secure_admin_auth_9x8f7a.txt');
-                const text = await res.text();
-                const lines = text.trim().split('\n');
-                if(u === lines[0].trim() && p === lines[1].trim()) {
-                    sessionStorage.setItem('isAdminAuth', 'true');
-                    window.location.href = 'admin-dashboard.html';
-                } else {
-                    err.textContent = 'بيانات المشرف غير صحيحة!';
-                    err.style.display = 'block';
-                }
-            } catch(e) {
-                err.textContent = '....';
+            const res = await fetch('/api/admin-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('aUser').value,
+                    password: document.getElementById('aPass').value
+                })
+            });
+            const data = await res.json();
+            if(data.success) {
+                sessionStorage.setItem('isAdminAuth', 'true');
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                const err = document.getElementById('adminErr');
+                err.textContent = data.error;
                 err.style.display = 'block';
             }
         }
