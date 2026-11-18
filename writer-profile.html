@@ -3,34 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ملف الكاتب</title>
+    <title>ملف الكاتب - مانهوا ڤيرس</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
         <a href="main-site.html" class="logo">مانهوا ڤيرس</a>
         <nav class="nav-links"><a href="main-site.html">الرئيسية</a></nav>
-        <button class="theme-toggle" onclick="document.documentElement.toggleAttribute('data-theme')">🌓</button>
     </header>
 
     <div class="container">
         <div style="text-align: center; margin-bottom: 2rem; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color);">
-            <img src="https://via.placeholder.com/100" alt="صورة الكاتب" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 2px solid var(--primary-color);">
-            <h2>أحمد</h2>
-            <p style="color: #888; font-size: 0.9rem; margin-top: 0.5rem;">كاتب معتمد في المنصة</p>
+            <img id="wAvatar" src="https://via.placeholder.com/100" alt="صورة الكاتب" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 3px solid var(--primary-color);">
+            <h2 id="wName">اسم الكاتب</h2>
+            <p style="color: #888; font-size: 0.9rem; margin-top: 0.4rem;">كاتب في منصة مانهوا ڤيرس</p>
         </div>
 
-        <h3>جميع قصص هذا الكاتب</h3>
-        <div class="grid" style="margin-top: 1rem;">
-            <div class="manga-card">
-                <div class="verified-badge">✓</div>
-                <a href="read.html"><img src="https://via.placeholder.com/200x280" alt="قصة"></a>
-                <div class="manga-info">
-                    <h3>أبطال الظل</h3>
-                    <p style="font-size: 0.8rem; color: #888; margin-top: 0.3rem;">⭐ المتوسط: 2.9 | 👥 1,200 مقيّم</p>
-                </div>
-            </div>
-        </div>
+        <h3 style="margin-bottom: 1rem;">جميع القصص التي كتبها</h3>
+        <div class="grid" id="writerStoriesGrid"></div>
     </div>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const writerId = urlParams.get('writer');
+
+        const writers = JSON.parse(localStorage.getItem('mv_writers') || '[]');
+        const writer = writers.find(w => w.id === writerId);
+
+        if (writer) {
+            document.getElementById('wName').textContent = writer.username;
+            document.getElementById('wAvatar').src = writer.avatar;
+        } else if (writerId === 'w_demo') {
+            document.getElementById('wName').textContent = 'أحمد_الكاتب';
+        }
+
+        const stories = JSON.parse(localStorage.getItem('mv_stories') || '[]').filter(s => s.writerId === writerId);
+        document.getElementById('writerStoriesGrid').innerHTML = stories.map(s => {
+            const total = s.ratings.bad + s.ratings.good + s.ratings.best;
+            const positive = s.ratings.good + s.ratings.best;
+            const avg = total === 0 ? '0.0' : (((s.ratings.bad * 1) + (s.ratings.good * 2) + (s.ratings.best * 3)) / total).toFixed(1);
+            const badge = positive > 1000 ? `<div class="verified-badge" title="أكثر من 1000 مقيّم بدرجة جيد فأعلى">✓</div>` : '';
+
+            return `
+                <div class="manga-card">
+                    ${badge}
+                    <a href="read.html?story=${s.id}"><img src="${s.cover}" alt="${s.title}"></a>
+                    <div class="manga-info">
+                        <h3>${s.title}</h3>
+                        <p style="font-size: 0.8rem; color: var(--primary-color); margin-top: 0.4rem;">⭐ المتوسط: ${avg} / 3 | 👥 ${total} مقيّم</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    </script>
 </body>
 </html>
