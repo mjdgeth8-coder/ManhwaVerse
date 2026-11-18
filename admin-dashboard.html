@@ -3,54 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المشرف العام</title>
+    <title>لوحة المشرف العام - مانهوا ڤيرس</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <span class="logo" style="color: #059669;">لوحة المشرف العام</span>
+        <span class="logo" style="color: #059669;">لوحة المشرف العام (تحكم كامل)</span>
         <nav class="nav-links">
-            <a href="main-site.html">الموقع</a>
-            <button onclick="sessionStorage.clear(); window.location.href='index.html';">خروج</button>
+            <a href="main-site.html">الموقع الرئيسي</a>
+            <button onclick="sessionStorage.clear(); window.location.href='index.html';">تسجيل خروج</button>
         </nav>
     </header>
 
     <div class="container">
-        <h2>إدارة التعليقات والبلاغات</h2>
-        <table style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; margin-top: 1rem; border: 1px solid var(--border-color); overflow: hidden;">
-            <thead>
-                <tr style="background: var(--primary-color); color: #fff; text-align: right;">
-                    <th style="padding: 1rem;">القصة</th>
-                    <th style="padding: 1rem;">التعليق</th>
-                    <th style="padding: 1rem;">البلاغات</th>
-                    <th style="padding: 1rem;">إجراء</th>
-                </tr>
-            </thead>
-            <tbody id="adminCommentsBody"></tbody>
-        </table>
+        <h2 style="margin-bottom: 1rem; color: var(--primary-color);">إدارة وحذف محتوى المنصة</h2>
+
+        <!-- قسم التحكم بالكتّاب والحسابات -->
+        <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem;">حسابات الكتّاب المسجلين</h3>
+            <div id="writersListContainer"></div>
+        </div>
+
+        <!-- قسم التحكم بالقصص -->
+        <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem;">جميع القصص المنشورة</h3>
+            <div id="storiesListContainer"></div>
+        </div>
+
+        <!-- قسم التحكم بالتعليقات والبلاغات -->
+        <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--border-color);">
+            <h3 style="margin-bottom: 1rem;">التعليقات والبلاغات</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--primary-color); color: #fff; text-align: right;">
+                        <th style="padding: 0.8rem;">القصة</th>
+                        <th style="padding: 0.8rem;">التعليق</th>
+                        <th style="padding: 0.8rem;">البلاغات</th>
+                        <th style="padding: 0.8rem;">إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="adminCommentsBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
+        // التحقق من صلاحية المشرف
         if (sessionStorage.getItem('isAdminAuth') !== 'true') {
+            alert('غير مصرح لك بالدخول!');
             window.location.href = 'index.html';
         }
         if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
-        function renderAdminComments() {
-            const comments = JSON.parse(localStorage.getItem('mv_comments') || '[]');
-            const tbody = document.getElementById('adminCommentsBody');
-            if (comments.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="padding: 1rem; text-align: center;">لا توجد تعليقات حالياً.</td></tr>';
+        // جด و عرض جميع البيانات المتاحة للحذف
+        function loadAdminData() {
+            renderWriters();
+            renderStories();
+            renderComments();
+        }
+
+        // 1. إدارة وحذف الكتّاب
+        function renderWriters() {
+            let writers = JSON.parse(localStorage.getItem('mv_writers') || '[]');
+            const container = document.getElementById('writersListContainer');
+            
+            if (writers.length === 0) {
+                container.innerHTML = '<p style="color: #888;">لا توجد حسابات كتّاب مسجلة حالياً.</p>';
                 return;
             }
+
+            container.innerHTML = writers.map(w => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; border-bottom: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 0.8rem;">
+                        <img src="${w.avatar}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                        <strong>${w.username}</strong>
+                    </div>
+                    <button onclick="deleteWriter('${w.id}')" style="background: #ef4444; color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;">حذف الحساب</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteWriter(id) {
+            if (!confirm('هل أنت متأكد من حذف حساب هذا الكاتب؟ سيتم حذف جميع قصصه معه أيضاً.')) return;
+            
+            // حذف الكاتب
+            let writers = JSON.parse(localStorage.getItem('mv_writers') || '[]').filter(w => w.id !== id);
+            localStorage.setItem('mv_writers', JSON.stringify(writers));
+
+            // حذف قصصه المرتبطة
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]').filter(s => s.writerId !== id);
+            localStorage.setItem('mv_stories', JSON.stringify(stories));
+
+            loadAdminData();
+            alert('تم حذف الحساب والقصص التابعة له بنجاح.');
+        }
+
+        // 2. إدارة وحذف القصص
+        function renderStories() {
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]');
+            const container = document.getElementById('storiesListContainer');
+
+            if (stories.length === 0) {
+                container.innerHTML = '<p style="color: #888;">لا توجد قصص منشورة حالياً.</p>';
+                return;
+            }
+
+            container.innerHTML = stories.map(s => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; border-bottom: 1px solid var(--border-color);">
+                    <div>
+                        <strong>${s.title}</strong> <span style="font-size: 0.85rem; color: #888;">(الكاتب: ${s.writerName || 'غير معروف'})</span>
+                    </div>
+                    <button onclick="deleteStory('${s.id}')" style="background: #ef4444; color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;">حذف القصة</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteStory(id) {
+            if (!confirm('هل أنت متأكد من حذف هذه القصة نهائياً؟')) return;
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]').filter(s => s.id !== id);
+            localStorage.setItem('mv_stories', JSON.stringify(stories));
+            loadAdminData();
+        }
+
+        // 3. إدارة وحذف التعليقات
+        function renderComments() {
+            let comments = JSON.parse(localStorage.getItem('mv_comments') || '[]');
+            const tbody = document.getElementById('adminCommentsBody');
+
+            if (comments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="padding: 1rem; text-align: center; color: #888;">لا توجد تعليقات حالياً.</td></tr>';
+                return;
+            }
+
             tbody.innerHTML = comments.map(c => `
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                    <td style="padding: 1rem;">${c.storyTitle}</td>
-                    <td style="padding: 1rem;">${c.text}</td>
-                    <td style="padding: 1rem; color: #ef4444; font-weight: bold;">🚨 (${c.reports})</td>
-                    <td style="padding: 1rem;">
-                        <button onclick="deleteComment('${c.id}')" style="background: #ef4444; color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;">حذف</button>
+                    <td style="padding: 0.8rem;">${c.storyTitle}</td>
+                    <td style="padding: 0.8rem;">${c.text}</td>
+                    <td style="padding: 0.8rem; color: #ef4444; font-weight: bold;">🚨 (${c.reports})</td>
+                    <td style="padding: 0.8rem;">
+                        <button onclick="deleteComment('${c.id}')" style="background: #ef4444; color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;">حذف التعليق</button>
                     </td>
                 </tr>
             `).join('');
@@ -59,10 +151,10 @@
         function deleteComment(id) {
             let comments = JSON.parse(localStorage.getItem('mv_comments') || '[]').filter(c => c.id !== id);
             localStorage.setItem('mv_comments', JSON.stringify(comments));
-            renderAdminComments();
+            renderComments();
         }
 
-        renderAdminComments();
+        loadAdminData();
     </script>
 </body>
 </html>
