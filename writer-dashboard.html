@@ -5,31 +5,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم الكاتب</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
         <a href="main-site.html" class="logo">لوحة الكاتب</a>
         <nav class="nav-links">
-            <a href="writer-profile.html">ملفي الشخصي</a>
-            <button onclick="localStorage.clear(); window.location.href='index.html';">خروج</button>
+            <a id="myProfileLink" href="writer-profile.html">ملفي الشخصي</a>
+            <button onclick="localStorage.removeItem('mv_current_writer'); window.location.href='index.html';">خروج</button>
         </nav>
     </header>
 
     <div class="container">
-        <div class="auth-container" style="max-width: 700px; margin: 2rem auto;">
-            <h3 style="margin-bottom: 1rem;">إنشاء قصة جديدة</h3>
-            <div class="form-group"><label>اسم القصة</label><input type="text"></div>
-            <div class="form-group"><label>رابط الغلاف</label><input type="text"></div>
-            <div class="form-group"><label>الحالة</label>
-                <select><option value="ongoing">مستمرة</option><option value="completed">مكتملة (يُقفل التعديل)</option></select>
-            </div>
-            <button class="btn" style="margin-bottom: 2rem;">حفظ القصة</button>
+        <div class="auth-container" style="max-width: 700px; margin: 1.5rem auto;">
+            <h3 style="margin-bottom: 1rem;">1. إنشاء قصة جديدة</h3>
+            <div class="form-group"><label>اسم القصة</label><input type="text" id="storyTitle" placeholder="عنوان القصة..."></div>
+            <div class="form-group"><label>رابط صورة الغلاف</label><input type="url" id="storyCover" placeholder="https://..."></div>
+            <button class="btn" style="margin-bottom: 2rem;" onclick="createStory()">حفظ ونشر القصة</button>
 
-            <h3 style="margin-bottom: 1rem;">رفع فصل جديد (بحد أقصى 6 صفحات)</h3>
-            <div class="form-group"><label>رقم الفصل</label><input type="number" value="1"></div>
-            <div class="form-group"><label>صور الفصل (حتى 6 صور)</label><input type="file" multiple accept="image/*"></div>
-            <button class="btn" style="background: #059669;">نشر الفصل</button>
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 2rem;">
+
+            <h3 style="margin-bottom: 1rem;">2. رفع فصل جديد (بحد أقصى 6 صفحات ثابتة)</h3>
+            <div class="form-group">
+                <label>اختر القصة المستمرة</label>
+                <select id="myOngoingStories"></select>
+            </div>
+            <div class="form-group"><label>رقم الفصل</label><input type="number" id="chapNum" value="1" min="1"></div>
+            <div class="form-group">
+                <label>روابط صور الصفحات (ضع كل رابط في سطر - الحد الأقصى 6 صفحات)</label>
+                <textarea id="chapPages" rows="6" placeholder="https://link-page1.jpg&#10;https://link-page2.jpg"></textarea>
+            </div>
+            <button class="btn" style="background: #059669; margin-bottom: 2rem;" onclick="addChapter()">نشر الفصل</button>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 2rem;">
+
+            <h3 style="margin-bottom: 1rem;">3. إدارة قصصي (إنهاء أو حذف)</h3>
+            <div id="manageStoriesList"></div>
         </div>
     </div>
+
+    <script>
+        const currentWriter = JSON.parse(localStorage.getItem('mv_current_writer'));
+        if (!currentWriter) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('myProfileLink').href = `writer-profile.html?writer=${currentWriter.id}`;
+        }
+
+        function createStory() {
+            const title = document.getElementById('storyTitle').value.trim();
+            const cover = document.getElementById('storyCover').value.trim() || 'https://via.placeholder.com/220x300';
+            if (!title) return alert('يرجى كتابة اسم القصة!');
+
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]');
+            stories.push({
+                id: 's_' + Date.now(),
+                title: title,
+                cover: cover,
+                status: 'ongoing',
+                writerId: currentWriter.id,
+                writerName: currentWriter.username,
+                createdAt: Date.now(),
+                ratings: { bad: 0, good: 0, best: 0 },
+                chapters: []
+            });
+            localStorage.setItem('mv_stories', JSON.stringify(stories));
+            document.getElementById('storyTitle').value = '';
+            document.getElementById('storyCover').value = '';
+            alert('تم إنشاء القصة بنجاح!');
+            loadWriterStories();
+        }
+
+        function addChapter() {
+            const storyId = document.getElementById('myOngoingStories').value;
+            const num = parseInt(document.getElementById('chapNum').value);
+            const rawPages = document.getElementById('chapPages').value.trim().split(/\r?\n/).filter(l => l.trim() !== '');
+
+            if (!storyId) return alert('لا توجد قصة مستمرة مختارة!');
+            if (rawPages.length === 0 || rawPages.length > 6) {
+                return alert('يجب إدخال من 1 إلى 6 صفحات فقط كحد أقصى لكل فصل!');
+            }
+
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]');
+            const story = stories.find(s => s.id === storyId);
+            if (story && story.status === 'ongoing') {
+                story.chapters.push({ number: num, pages: rawPages });
+                localStorage.setItem('mv_stories', JSON.stringify(stories));
+                document.getElementById('chapPages').value = '';
+                alert('تم نشر الفصل بنجاح!');
+                loadWriterStories();
+            }
+        }
+
+        function markCompleted(id) {
+            if (!confirm('تحذير: عند جعل القصة مكتملة يُقفل التعديل وإضافة الفصول نهائياً. هل أنت متأكد؟')) return;
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]');
+            const s = stories.find(x => x.id === id);
+            if (s) {
+                s.status = 'completed';
+                localStorage.setItem('mv_stories', JSON.stringify(stories));
+                loadWriterStories();
+            }
+        }
+
+        function deleteStory(id) {
+            if (!confirm('هل تريد حذف هذه القصة نهائياً؟')) return;
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]').filter(x => x.id !== id);
+            localStorage.setItem('mv_stories', JSON.stringify(stories));
+            loadWriterStories();
+        }
+
+        function loadWriterStories() {
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]').filter(s => s.writerId === currentWriter.id);
+            const select = document.getElementById('myOngoingStories');
+            const ongoing = stories.filter(s => s.status === 'ongoing');
+            select.innerHTML = ongoing.length ? ongoing.map(s => `<option value="${s.id}">${s.title}</option>`).join('') : '<option value="">لا توجد قصص مستمرة</option>';
+
+            document.getElementById('manageStoriesList').innerHTML = stories.map(s => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 0.5rem;">
+                    <div>
+                        <strong>${s.title}</strong> (${s.status === 'completed' ? '🔒 مكتملة' : '🟢 مستمرة'}) - الفصول: ${s.chapters.length}
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        ${s.status === 'ongoing' ? `<button onclick="markCompleted('${s.id}')" style="background:#f59e0b; color:#fff; border:none; padding:0.4rem 0.7rem; border-radius:4px; cursor:pointer;">جعلها مكتملة</button>` : ''}
+                        <button onclick="deleteStory('${s.id}')" style="background:#ef4444; color:#fff; border:none; padding:0.4rem 0.7rem; border-radius:4px; cursor:pointer;">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        loadWriterStories();
+    </script>
 </body>
 </html>
