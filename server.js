@@ -51,7 +51,7 @@ db.serialize(() => {
     )`);
 });
 
-// APIs للتسجيل والدخول
+// API التسجيل
 app.post('/api/register', async (req, res) => {
     const { username, password, avatar } = req.body;
     try {
@@ -68,6 +68,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+// API تسجيل دخول الكاتب
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, user) => {
