@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم الكاتب</title>
+    <title>لوحة تحكم الكاتب - مانهوا ڤيرس</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -25,15 +25,15 @@
 
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 2rem;">
 
-            <h3 style="margin-bottom: 1rem;">2. رفع فصل جديد (بحد أقصى 6 صفحات ثابتة)</h3>
+            <h3 style="margin-bottom: 1rem;">2. رفع فصل جديد (بحد أقصى 30 صفحة)</h3>
             <div class="form-group">
                 <label>اختر القصة المستمرة</label>
                 <select id="myOngoingStories"></select>
             </div>
             <div class="form-group"><label>رقم الفصل</label><input type="number" id="chapNum" value="1" min="1"></div>
             <div class="form-group">
-                <label>روابط صور الصفحات (ضع كل رابط في سطر - الحد الأقصى 6 صفحات)</label>
-                <textarea id="chapPages" rows="6" placeholder="https://link-page1.jpg&#10;https://link-page2.jpg"></textarea>
+                <label>روابط صور الصفحات (ضع كل رابط في سطر - الحد الأقصى 30 صفحة)</label>
+                <textarea id="chapPages" rows="8" placeholder="https://link-page1.jpg&#10;https://link-page2.jpg"></textarea>
             </div>
             <button class="btn" style="background: #059669; margin-bottom: 2rem;" onclick="addChapter()">نشر الفصل</button>
 
@@ -51,6 +51,7 @@
         } else {
             document.getElementById('myProfileLink').href = `writer-profile.html?writer=${currentWriter.id}`;
         }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
         function createStory() {
             const title = document.getElementById('storyTitle').value.trim();
@@ -82,8 +83,11 @@
             const rawPages = document.getElementById('chapPages').value.trim().split(/\r?\n/).filter(l => l.trim() !== '');
 
             if (!storyId) return alert('لا توجد قصة مستمرة مختارة!');
-            if (rawPages.length === 0 || rawPages.length > 6) {
-                return alert('يجب إدخال من 1 إلى 6 صفحات فقط كحد أقصى لكل فصل!');
+            if (rawPages.length === 0) return alert('يرجى إدخال روابط صفحات الفصل!');
+            
+            // تم تعديل الشرط هنا ليصبح الحد الأقصى 30 صفحة
+            if (rawPages.length > 30) {
+                return alert(`عذراً، الحد الأقصى لعدد الصفحات في الفصل الواحد هو 30 صفحة فقط! (لقد أدخلت ${rawPages.length} صفحة).`);
             }
 
             let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]');
