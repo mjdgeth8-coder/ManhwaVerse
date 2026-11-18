@@ -10,8 +10,8 @@
     <header>
         <span class="logo" style="color: #059669;">لوحة المشرف العام (مؤمنة)</span>
         <nav class="nav-links">
-            <a href="index.html">الموقع</a>
-            <button onclick="sessionStorage.clear(); window.location.href='auth.html';">خروج</button>
+            <a href="main-site.html">الموقع</a>
+            <button onclick="sessionStorage.clear(); window.location.href='index.html';">خروج</button>
         </nav>
     </header>
 
@@ -45,7 +45,7 @@
     <script>
         if (sessionStorage.getItem('isAdminAuth') !== 'true') {
             alert('غير مصرح لك بالدخول!');
-            window.location.href = 'auth.html';
+            window.location.href = 'index.html';
         }
     </script>
 </body>
