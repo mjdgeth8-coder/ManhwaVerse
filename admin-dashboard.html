@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة المشرف العام</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <span class="logo" style="color: #059669;">لوحة المشرف العام (مؤمنة)</span>
+        <span class="logo" style="color: #059669;">لوحة المشرف العام</span>
         <nav class="nav-links">
             <a href="main-site.html">الموقع</a>
             <button onclick="sessionStorage.clear(); window.location.href='index.html';">خروج</button>
@@ -17,36 +18,51 @@
 
     <div class="container">
         <h2>إدارة التعليقات والبلاغات</h2>
-        <table style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; margin-top: 1rem; border: 1px solid var(--border-color);">
+        <table style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 8px; margin-top: 1rem; border: 1px solid var(--border-color); overflow: hidden;">
             <thead>
                 <tr style="background: var(--primary-color); color: #fff; text-align: right;">
-                    <th style="padding: 1rem;">المستخدم</th>
+                    <th style="padding: 1rem;">القصة</th>
                     <th style="padding: 1rem;">التعليق</th>
                     <th style="padding: 1rem;">البلاغات</th>
                     <th style="padding: 1rem;">إجراء</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr style="border-bottom: 1px solid var(--border-color);">
-                    <td style="padding: 1rem;">مستخدم_مخالف</td>
-                    <td style="padding: 1rem;">تعليق غير لائق...</td>
-                    <td style="padding: 1rem; color: red;">🚨 (2)</td>
-                    <td style="padding: 1rem;"><button style="background: red; color:#fff; border:none; padding:0.3rem 0.6rem; border-radius:4px; cursor:pointer;">حذف</button></td>
-                </tr>
-            </tbody>
+            <tbody id="adminCommentsBody"></tbody>
         </table>
-
-        <div style="margin-top: 3rem; padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem;">
-            <strong>إخلاء مسؤولية قانوني:</strong>
-            <p style="margin-top: 0.5rem; color: #888;">جميع التعليقات تعبر عن رأي أصحابها فقط، وإدارة الموقع غير مسؤولة عنها ويتم حذف المخالفات فوراً.</p>
-        </div>
     </div>
 
     <script>
         if (sessionStorage.getItem('isAdminAuth') !== 'true') {
-            alert('غير مصرح لك بالدخول!');
             window.location.href = 'index.html';
         }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+        function renderAdminComments() {
+            const comments = JSON.parse(localStorage.getItem('mv_comments') || '[]');
+            const tbody = document.getElementById('adminCommentsBody');
+            if (comments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="padding: 1rem; text-align: center;">لا توجد تعليقات حالياً.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = comments.map(c => `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">${c.storyTitle}</td>
+                    <td style="padding: 1rem;">${c.text}</td>
+                    <td style="padding: 1rem; color: #ef4444; font-weight: bold;">🚨 (${c.reports})</td>
+                    <td style="padding: 1rem;">
+                        <button onclick="deleteComment('${c.id}')" style="background: #ef4444; color: #fff; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;">حذف</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteComment(id) {
+            let comments = JSON.parse(localStorage.getItem('mv_comments') || '[]').filter(c => c.id !== id);
+            localStorage.setItem('mv_comments', JSON.stringify(comments));
+            renderAdminComments();
+        }
+
+        renderAdminComments();
     </script>
 </body>
 </html>
