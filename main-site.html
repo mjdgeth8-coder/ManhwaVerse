@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مانهوا ڤيرس - الرئيسية</title>
+    <title>مانهوا ڤيرس - تصفح القصص</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -12,36 +13,110 @@
         <nav class="nav-links">
             <a href="main-site.html">الرئيسية</a>
             <button onclick="window.location.href='index.html'">تسجيل / دخول</button>
+            <button class="theme-toggle" id="themeBtn">🌙</button>
         </nav>
-        <button class="theme-toggle" id="themeToggleBtn">🌙</button>
     </header>
 
     <div class="container">
-        <h2>قائمة القصص</h2>
-        <div class="grid" id="mangaGrid" style="margin-top: 1.5rem;">
-            <div class="manga-card">
-                <div class="verified-badge" title="عمل مميز موثق">✓</div>
-                <a href="read.html"><img src="https://via.placeholder.com/200x280" alt="غلاف"></a>
-                <div class="manga-info">
-                    <h3>أبطال الظل</h3>
-                    <p style="font-size: 0.8rem; color: #888; margin-top: 0.3rem;">
-                        الكاتب: <a href="writer-profile.html" style="color: var(--primary-color);">أحمد</a>
-                    </p>
-                    <p style="font-size: 0.8rem; margin-top: 0.3rem;">⭐ المتوسط: 2.9 | 👥 1,200 مقيّم</p>
-                </div>
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <h2>قائمة القصص والمانهوا</h2>
+            <select id="sortSelect" onchange="renderStories()" style="padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color);">
+                <option value="new">الأحدث نشراً</option>
+                <option value="old">الأقدم نشراً</option>
+                <option value="rating">الأعلى تقييماً</option>
+            </select>
         </div>
+
+        <div class="grid" id="mangaGrid"></div>
     </div>
 
     <script>
-        const btn = document.getElementById('themeToggleBtn');
-        btn.addEventListener('click', () => {
-            if(document.documentElement.getAttribute('data-theme')==='dark'){
-                document.documentElement.removeAttribute('data-theme'); btn.textContent='🌙';
-            }else{
-                document.documentElement.setAttribute('data-theme','dark'); btn.textContent='☀️';
+        const themeBtn = document.getElementById('themeBtn');
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeBtn.textContent = '☀️';
+        }
+        themeBtn.onclick = () => {
+            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                themeBtn.textContent = '🌙';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeBtn.textContent = '☀️';
             }
-        });
+        };
+
+        // تهيئة قصة افتراضية للتجربة إذا كانت قاعدة البيانات فارغة
+        if (!localStorage.getItem('mv_stories')) {
+            const sampleStories = [{
+                id: 's_demo_1',
+                title: 'أسطورة السيف المفقود',
+                cover: 'https://via.placeholder.com/220x300/4f46e5/ffffff?text=Manhwa+Cover',
+                status: 'ongoing',
+                writerId: 'w_demo',
+                writerName: 'أحمد_الكاتب',
+                createdAt: Date.now(),
+                ratings: { bad: 12, good: 450, best: 620 }, // المجموع جيد+أحسن = 1070 (> 1000 يأخذ علامة الصح الزرقاء)
+                chapters: [{
+                    number: 1,
+                    pages: [
+                        'https://via.placeholder.com/800x1100/1e293b/ffffff?text=Page+1',
+                        'https://via.placeholder.com/800x1100/334155/ffffff?text=Page+2',
+                        'https://via.placeholder.com/800x1100/475569/ffffff?text=Page+3',
+                        'https://via.placeholder.com/800x1100/64748b/ffffff?text=Page+4',
+                        'https://via.placeholder.com/800x1100/94a3b8/ffffff?text=Page+5',
+                        'https://via.placeholder.com/800x1100/cbd5e1/000000?text=Page+6'
+                    ]
+                }]
+            }];
+            localStorage.setItem('mv_stories', JSON.stringify(sampleStories));
+        }
+
+        function getStats(ratings) {
+            const total = ratings.bad + ratings.good + ratings.best;
+            const positive = ratings.good + ratings.best;
+            const avg = total === 0 ? '0.0' : (((ratings.bad * 1) + (ratings.good * 2) + (ratings.best * 3)) / total).toFixed(1);
+            return { total, positive, avg };
+        }
+
+        function renderStories() {
+            let stories = JSON.parse(localStorage.getItem('mv_stories') || '[]');
+            const sortBy = document.getElementById('sortSelect').value;
+
+            if (sortBy === 'new') stories.sort((a, b) => b.createdAt - a.createdAt);
+            if (sortBy === 'old') stories.sort((a, b) => a.createdAt - b.createdAt);
+            if (sortBy === 'rating') stories.sort((a, b) => getStats(b.ratings).avg - getStats(a.ratings).avg);
+
+            const grid = document.getElementById('mangaGrid');
+            grid.innerHTML = stories.map(s => {
+                const stats = getStats(s.ratings);
+                const badge = stats.positive > 1000 ? `<div class="verified-badge" title="أكثر من 1000 مقيّم بدرجة جيد فأعلى">✓</div>` : '';
+                return `
+                    <div class="manga-card">
+                        ${badge}
+                        <a href="read.html?story=${s.id}">
+                            <img src="${s.cover}" alt="${s.title}">
+                        </a>
+                        <div class="manga-info">
+                            <h3 style="font-size: 1.05rem;">${s.title}</h3>
+                            <p style="font-size: 0.85rem; color: #888; margin-top: 0.3rem;">
+                                الكاتب: <a href="writer-profile.html?writer=${s.writerId}" style="color: var(--primary-color); font-weight: bold;">${s.writerName}</a>
+                            </p>
+                            <p style="font-size: 0.8rem; margin-top: 0.4rem;">
+                                ${s.status === 'completed' ? '🔒 مكتملة' : '🟢 مستمرة'} | فصول: ${s.chapters.length}
+                            </p>
+                            <p style="font-size: 0.8rem; margin-top: 0.3rem; color: var(--primary-color);">
+                                ⭐ المتوسط: ${stats.avg} / 3 | 👥 ${stats.total} مقيّم
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        renderStories();
     </script>
 </body>
 </html>
