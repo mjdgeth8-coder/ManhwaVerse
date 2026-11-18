@@ -3,46 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مانهوا ڤيرس - الرئيسية</title>
+    <title>تسجيل الدخول - مانهوا ڤيرس</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <a href="index.html" class="logo">مانهوا ڤيرس</a>
-        <nav class="nav-links">
-            <a href="index.html">الرئيسية</a>
-            <button onclick="window.location.href='auth.html'">تسجيل / دخول</button>
-        </nav>
-        <button class="theme-toggle" id="themeToggleBtn">🌙</button>
-    </header>
+    <div class="auth-container">
+        <h2 style="text-align:center; margin-bottom: 1.5rem; color: var(--primary-color);">منصة المانهوا ڤيرس</h2>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+            <button class="btn" onclick="switchRole('guest')" style="background:#4b5563;">دخول ضيف</button>
+            <button class="btn" onclick="switchRole('writer')">حساب كاتب</button>
+            <button class="btn" onclick="switchRole('admin')" style="background:#059669;">دخول مشرف</button>
+        </div>
 
-    <div class="container">
-        <h2>قائمة القصص</h2>
-        <div class="grid" id="mangaGrid" style="margin-top: 1.5rem;">
-            <!-- عرض تجريبي لقصة موثقة -->
-            <div class="manga-card">
-                <div class="verified-badge" title="عمل مميز موثق">✓</div>
-                <a href="read.html"><img src="https://via.placeholder.com/200x280" alt="غلاف"></a>
-                <div class="manga-info">
-                    <h3>أبطال الظل</h3>
-                    <p style="font-size: 0.8rem; color: #888; margin-top: 0.3rem;">
-                        الكاتب: <a href="writer-profile.html" style="color: var(--primary-color);">أحمد</a>
-                    </p>
-                    <p style="font-size: 0.8rem; margin-top: 0.3rem;">⭐ المتوسط: 2.9 | 👥 1,200 مقيّم</p>
-                </div>
+        <div id="writerSection">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchWriterTab('login')">تسجيل دخول</button>
+                <button class="tab-btn" onclick="switchWriterTab('register')">إنشاء حساب جديد</button>
             </div>
+            <div id="writerFormContent">
+                <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser"></div>
+                <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass"></div>
+                <button class="btn" onclick="writerLogin()">دخول</button>
+            </div>
+        </div>
+
+        <div id="adminSection" style="display: none;">
+            <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">دخول المشرف (عبر ملف الأمان)</h3>
+            <div class="form-group"><label>اسم المستخدم</label><input type="text" id="aUser"></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="aPass"></div>
+            <button class="btn" style="background: #059669;" onclick="adminLogin()">دخول المشرف</button>
+            <p id="adminErr" style="color: red; font-size: 0.85rem; margin-top: 0.5rem; display: none;"></p>
+        </div>
+
+        <div id="guestSection" style="display: none; text-align: center;">
+            <p style="margin-bottom: 1.5rem;">تصفح القصص مباشرة بدون حساب.</p>
+            <button class="btn" onclick="window.location.href='main-site.html'">دخول كمشاهد</button>
         </div>
     </div>
 
     <script>
-        const btn = document.getElementById('themeToggleBtn');
-        btn.addEventListener('click', () => {
-            if(document.documentElement.getAttribute('data-theme')==='dark'){
-                document.documentElement.removeAttribute('data-theme'); btn.textContent='🌙';
-            }else{
-                document.documentElement.setAttribute('data-theme','dark'); btn.textContent='☀️';
+        function switchRole(role) {
+            document.getElementById('writerSection').style.display = role === 'writer' ? 'block' : 'none';
+            document.getElementById('adminSection').style.display = role === 'admin' ? 'block' : 'none';
+            document.getElementById('guestSection').style.display = role === 'guest' ? 'block' : 'none';
+        }
+
+        function switchWriterTab(tab) {
+            const buttons = document.querySelectorAll('.tabs .tab-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const content = document.getElementById('writerFormContent');
+            if(tab === 'register') {
+                content.innerHTML = `
+                    <div class="form-group"><label>اسم الكاتب</label><input type="text" id="regName"></div>
+                    <div class="form-group"><label>رابط الصورة الشخصية</label><input type="text" id="regAvatar"></div>
+                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="regPass"></div>
+                    <button class="btn" onclick="writerRegister()">إنشاء حساب</button>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="form-group"><label>اسم المستخدم</label><input type="text" id="wUser"></div>
+                    <div class="form-group"><label>كلمة المرور</label><input type="password" id="wPass"></div>
+                    <button class="btn" onclick="writerLogin()">دخول</button>
+                `;
             }
-        });
+        }
+
+        async function writerRegister() {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('regName').value,
+                    avatar: document.getElementById('regAvatar').value,
+                    password: document.getElementById('regPass').value
+                })
+            });
+            const data = await res.json();
+            if(data.success) {
+                localStorage.setItem('writerId', data.userId);
+                localStorage.setItem('writerName', data.username);
+                window.location.href = 'writer-dashboard.html';
+            } else { alert(data.error); }
+        }
+
+        async function writerLogin() {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('wUser').value,
+                    password: document.getElementById('wPass').value
+                })
+            });
+            const data = await res.json();
+            if(data.success) {
+                localStorage.setItem('writerId', data.userId);
+                localStorage.setItem('writerName', data.username);
+                window.location.href = 'writer-dashboard.html';
+            } else { alert(data.error); }
+        }
+
+        async function adminLogin() {
+            const res = await fetch('/api/admin-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: document.getElementById('aUser').value,
+                    password: document.getElementById('aPass').value
+                })
+            });
+            const data = await res.json();
+            if(data.success) {
+                sessionStorage.setItem('isAdminAuth', 'true');
+                window.location.href = 'admin-dashboard.html';
+            } else {
+                const err = document.getElementById('adminErr');
+                err.textContent = data.error;
+                err.style.display = 'block';
+            }
+        }
     </script>
 </body>
 </html>
