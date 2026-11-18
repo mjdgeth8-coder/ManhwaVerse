@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مانهوا ڤيرس - الرئيسية</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <a href="main-site.html" class="logo">مانهوا ڤيرس</a>
+        <nav class="nav-links">
+            <a href="main-site.html">الرئيسية</a>
+            <button onclick="window.location.href='index.html'">تسجيل / دخول</button>
+        </nav>
+        <button class="theme-toggle" id="themeToggleBtn">🌙</button>
+    </header>
+
+    <div class="container">
+        <h2>قائمة القصص</h2>
+        <div class="grid" id="mangaGrid" style="margin-top: 1.5rem;">
+            <div class="manga-card">
+                <div class="verified-badge" title="عمل مميز موثق">✓</div>
+                <a href="read.html"><img src="https://via.placeholder.com/200x280" alt="غلاف"></a>
+                <div class="manga-info">
+                    <h3>أبطال الظل</h3>
+                    <p style="font-size: 0.8rem; color: #888; margin-top: 0.3rem;">
+                        الكاتب: <a href="writer-profile.html" style="color: var(--primary-color);">أحمد</a>
+                    </p>
+                    <p style="font-size: 0.8rem; margin-top: 0.3rem;">⭐ المتوسط: 2.9 | 👥 1,200 مقيّم</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('themeToggleBtn');
+        btn.addEventListener('click', () => {
+            if(document.documentElement.getAttribute('data-theme')==='dark'){
+                document.documentElement.removeAttribute('data-theme'); btn.textContent='🌙';
+            }else{
+                document.documentElement.setAttribute('data-theme','dark'); btn.textContent='☀️';
+            }
+        });
+    </script>
+</body>
+</html>
